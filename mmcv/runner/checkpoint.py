@@ -258,7 +258,7 @@ def load_from_local(filename, map_location):
 
     if not osp.isfile(filename):
         raise IOError(f'{filename} is not a checkpoint file')
-    checkpoint = torch.load(filename, map_location=map_location)
+    checkpoint = torch.load(filename, map_location=map_location, weights_only=False)
     return checkpoint
 
 
@@ -407,7 +407,7 @@ def load_from_openmmlab(filename, map_location=None):
         filename = osp.join(_get_mmcv_home(), model_url)
         if not osp.isfile(filename):
             raise IOError(f'{filename} is not a checkpoint file')
-        checkpoint = torch.load(filename, map_location=map_location)
+        checkpoint = torch.load(filename, map_location=map_location, weights_only=False)
     return checkpoint
 
 
