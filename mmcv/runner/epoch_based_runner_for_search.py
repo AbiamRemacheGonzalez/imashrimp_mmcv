@@ -95,6 +95,27 @@ class EpochBasedRunnerForSearch(BaseRunner):
             self.call_hook('after_val_iter')
         self.call_hook('after_val_epoch')
 
+    def bch_search(self, data_loader, **kwargs):
+        print("Searching best batch size...")
+        self.model.train()
+        self.mode = 'train'
+        self.data_loader = data_loader
+        self._max_iters = self._max_epochs * len(self.data_loader)
+        self.call_hook('before_train_epoch')
+        time.sleep(2) # Prevent possible deadlock during epoch transition
+        in_inter = 0
+        for i, data_batch in enumerate(self.data_loader):
+            self._inner_iter = i
+            self.call_hook('before_train_iter')
+            self.run_iter(data_batch, train_mode=True, **kwargs)
+            self.call_hook('after_train_iter')
+            self._iter += 1
+            in_inter = in_inter + 1
+            if in_inter >= 3:
+                break
+        self.call_hook('after_train_epoch')
+        self._epoch += 1
+
     def run(self, data_loaders, workflow, max_epochs=None, **kwargs):
         """Start running.
 
