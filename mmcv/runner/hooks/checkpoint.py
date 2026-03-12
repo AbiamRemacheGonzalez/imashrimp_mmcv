@@ -47,6 +47,8 @@ class CheckpointHook(Hook):
         self.save_last = save_last
         self.args = kwargs
         self.sync_buffer = sync_buffer
+        self.pck_path = None
+        self.loss_path = None
 
     def before_run(self, runner):
         if not self.out_dir:
@@ -59,14 +61,35 @@ class CheckpointHook(Hook):
         # save checkpoint for following cases:
         # 1. every ``self.interval`` epochs
         # 2. reach the last epoch of training
-        if self.every_n_epochs(
-                runner, self.interval) or (self.save_last
-                                           and self.is_last_epoch(runner)):
-            runner.logger.info(
-                f'Saving checkpoint at {runner.epoch + 1} epochs')
+        if self.every_n_epochs(runner, self.interval) or (self.save_last and self.is_last_epoch(runner)):
+            runner.logger.info(f'Saving checkpoint at {runner.epoch + 1} epochs')
             if self.sync_buffer:
                 allreduce_params(runner.model.buffers())
             self._save_checkpoint(runner)
+
+    def after_val_epoch(self, runner):
+        output = runner.log_buffer.val_history
+        if output.get('pck_checkpoint_save', False):
+            if self.pck_path and os.path.exists(self.pck_path):
+                os.remove(self.pck_path)
+            name = f'best_PCK_epoch_{runner.epoch}.pth'
+            self.pck_path = os.path.join(runner.work_dir, name)
+            max_val_pck = output.get('max_val_pck', 0)[0]
+            runner.save_checkpoint(runner.work_dir, name, create_symlink=False)
+            runner.logger.info(f'Best PCK is {max_val_pck} at {runner.epoch} epoch.')
+            runner.logger.info(f'Now best checkpoint is saved as {name}.')
+
+        if output.get('loss_checkpoint_save', False):
+            if self.loss_path and os.path.exists(self.loss_path):
+                os.remove(self.loss_path)
+            name = f'best_LOSS_epoch_{runner.epoch}.pth'
+            self.loss_path = os.path.join(runner.work_dir, name)
+            min_val_loss = output.get('min_val_loss', 0)[0]
+            runner.save_checkpoint(runner.work_dir, name, create_symlink=False)
+            runner.logger.info(f'Best loss is {min_val_loss} at {runner.epoch} epoch.')
+            runner.logger.info(f'Now best checkpoint is saved as {name}.')
+
+        runner.log_buffer.clear_output()
 
     @master_only
     def _save_checkpoint(self, runner):

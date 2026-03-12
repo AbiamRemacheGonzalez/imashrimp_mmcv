@@ -15,6 +15,7 @@ from .optimizer import Fp16OptimizerHook, OptimizerHook
 from .profiler import ProfilerHook
 from .sampler_seed import DistSamplerSeedHook
 from .sync_buffer import SyncBuffersHook
+from .early_stopping import EarlyStopping
 
 __all__ = [
     'HOOKS', 'Hook', 'CheckpointHook', 'ClosureHook', 'LrUpdaterHook',
@@ -23,5 +24,5 @@ __all__ = [
     'PaviLoggerHook', 'TextLoggerHook', 'TensorboardLoggerHook',
     'NeptuneLoggerHook', 'WandbLoggerHook', 'DvcliveLoggerHook',
     'MomentumUpdaterHook', 'SyncBuffersHook', 'EMAHook', 'EvalHook',
-    'DistEvalHook', 'ProfilerHook'
+    'DistEvalHook', 'ProfilerHook', 'EarlyStopping'
 ]

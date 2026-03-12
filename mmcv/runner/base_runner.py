@@ -134,6 +134,7 @@ class BaseRunner(metaclass=ABCMeta):
         self._max_iters = max_iters
         # TODO: Redesign LogBuffer, it is not flexible and elegant enough
         self.log_buffer = LogBuffer()
+        self.early_stop = False
 
     @property
     def model_name(self):
